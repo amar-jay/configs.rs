@@ -1,7 +1,7 @@
 #![allow(unused)]
 use clap::Parser;
 use log::{info, warn};
-use std::env;
+use std::{env, error};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -22,14 +22,20 @@ impl Args {
 }
 
 
-struct Error(String);
-fn main() ->  Result<(),Box<dyn std::error::Error> > {
+#[derive(Debug)]
+enum Errors {
+    FileNotFound,
+    ArgumentError,
+    PathError
+}
+fn run() ->  Result<(), Errors> {
     let args = Args::parse();
-    env_logger::init();
+    //env_logger::init();
 
     println!("path: {:?} \npattern : {}", args.path, args.pattern );
     //let folder = std::fs::read_dir(&args.path).expect("could not read file");
-    let content = std::fs::read_to_string(&args.path).map_err(|_| info!("unable to find {:?}", args.path));
+    let content = std::fs::read_to_string(&args.path).unwrap_or(|_| return Errors::FileNotFound);
+
     for line in content.lines() {
       if line.contains(&args.pattern) {
         println!("{}", line);
@@ -37,4 +43,14 @@ fn main() ->  Result<(),Box<dyn std::error::Error> > {
     }
 
     Ok(())
+}
+
+fn main() {
+    match run() {
+        Ok(r) => r,
+        Errors::FileNotFound => info!("File not found");
+        Errors::ArgumentError => warn!("wrong input");
+        Errors::PathError => warn!("Path input error!!");
+        _ => ();,
+    }
 }
