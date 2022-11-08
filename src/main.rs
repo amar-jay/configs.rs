@@ -1,20 +1,28 @@
-#![allow(unused)]
+use std::process::Command;
 use clap::Parser;
-use log::{info, warn};
-use std::{env, error};
 use std::path::PathBuf;
 
+/// A simple program to organize my CLI commands.
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
+    /// Self explanatory
+    command: String,
+    /// A regex pattern
+    #[arg(long, short='r', required=false)]
     pattern: String,
+
+    /// path of file - regex not supported yet
+    #[arg(long, short='p', aliases=["where"], required=true)]
     path: PathBuf,
 }
 
 impl Args {
-    fn new(pattern: String, path: PathBuf) -> Args {
+
+    #![allow(unused)]
+    fn new(command: String, pattern: String, path: PathBuf) -> Args {
         Args {
+            command,
             pattern,
             path
         }
@@ -22,19 +30,20 @@ impl Args {
 }
 
 
-#[derive(Debug)]
 enum Errors {
+    CommandNotFound,
     FileNotFound,
-    ArgumentError,
-    PathError
+    FileIsEmpty,
 }
-fn run() ->  Result<(), Errors> {
-    let args = Args::parse();
-    //env_logger::init();
 
-    println!("path: {:?} \npattern : {}", args.path, args.pattern );
+fn read_file(args:Args) -> Result<(), Errors> {
+
     //let folder = std::fs::read_dir(&args.path).expect("could not read file");
-    let content = std::fs::read_to_string(&args.path).unwrap_or(|_| return Errors::FileNotFound);
+    let content = std::fs::read_to_string(&args.path).map_err(|_| return Errors::FileNotFound)?;
+
+    if content.contains(&args.pattern) {
+        return Err(Errors::FileIsEmpty);
+    }
 
     for line in content.lines() {
       if line.contains(&args.pattern) {
@@ -45,12 +54,34 @@ fn run() ->  Result<(), Errors> {
     Ok(())
 }
 
+fn open_file(path: PathBuf) -> Result<(), Errors> {
+    let path = path.to_str().unwrap();
+
+    //let f = File::options().append(true).open(args.path).map_err(|_| Errors::FileNotFound)?;
+    let mut _cmd = Command::new("open_command").current_dir("/home/manan").arg(path).spawn().unwrap();
+   // .map_err(|_| Errors::FileNotFound)?;
+
+    return Ok(());
+}
+
+fn run() ->  Result<(), Errors> {
+    let args = Args::parse();
+    let cmd = args.command.as_str();
+
+    match cmd {
+        "open" => open_file(args.path), 
+        "read" => read_file(args),
+        _ => Err(Errors::CommandNotFound)
+    }
+}
+
 fn main() {
     match run() {
         Ok(r) => r,
-        Errors::FileNotFound => info!("File not found");
-        Errors::ArgumentError => warn!("wrong input");
-        Errors::PathError => warn!("Path input error!!");
-        _ => ();,
+        Err(Errors::FileNotFound) => eprintln!("File not found"),
+        Err(Errors::CommandNotFound) => eprintln!("Command not Found"),
+//        Err(Errors::ArgumentError) => eprintln!("wrong input"),
+        Err(Errors::FileIsEmpty) => eprintln!("File not found"),
+//        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
 }
