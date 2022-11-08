@@ -1,11 +1,12 @@
-use std::{process::Command, fs::File, io::Read};
+mod options;
+use crate::options::{file::FileOptions, Errors};
 use clap::Parser;
 use std::path::PathBuf;
 
 /// A simple program to organize my CLI commands.
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-struct Args {
+pub struct Args {
     /// Self explanatory
     command: String,
     /// A regex pattern
@@ -29,51 +30,15 @@ impl Args {
     }
 }
 
-
-enum Errors {
-    CommandNotFound,
-    FileNotFound,
-    FileIsEmpty,
-}
-
-fn read_file(args:Args) -> Result<(), Errors> {
-
-    //let folder = std::fs::read_dir(&args.path).expect("could not read file");
-    //let content = std::fs::read_to_string(&args.path).map_err(|_| return Errors::FileNotFound)?;
-    let mut f = File::options().append(true).open(args.path).map_err(|_| Errors::FileNotFound)?;
-    let mut content = String::from("");
-    f.read_to_string(&mut content).map_err(|_| Errors::FileIsEmpty)?;
-
-    if content.contains(&args.pattern) {
-        return Err(Errors::FileIsEmpty);
-    }
-
-    for line in content.lines() {
-      if line.contains(&args.pattern) {
-        println!("{}", line);
-      }
-    }
-
-    Ok(())
-}
-
-fn open_file(path: PathBuf) -> Result<(), Errors> {
-    let path = path.to_str().unwrap();
-
-    Command::new("open_command").current_dir("/home/manan").arg(path).spawn().unwrap();
-   // .map_err(|_| Errors::FileNotFound)?;
-
-    return Ok(());
-}
-
 fn run() ->  Result<(), Errors> {
     let args = Args::parse();
     let cmd = args.command.as_str();
 
     match cmd {
-        "open" => open_file(args.path), 
-        "read" => read_file(args),
-        _ => Err(Errors::CommandNotFound)
+        "open" => FileOptions::open_file(args.path), 
+        "read" => FileOptions::read_file(args),
+        "run"  => FileOptions::exec_file(args.path),
+            _  => Err(Errors::CommandNotFound)
     }
 }
 
@@ -82,7 +47,7 @@ fn main() {
         Ok(r) => r,
         Err(Errors::FileNotFound) => eprintln!("File not found"),
         Err(Errors::CommandNotFound) => eprintln!("Command not Found"),
-//        Err(Errors::ArgumentError) => eprintln!("wrong input"),
+        Err(Errors::ArgumentError) => eprintln!("wrong input"),
         Err(Errors::FileIsEmpty) => eprintln!("File not found"),
 //        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
