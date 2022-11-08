@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{process::Command, fs::File, io::Read};
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -39,7 +39,10 @@ enum Errors {
 fn read_file(args:Args) -> Result<(), Errors> {
 
     //let folder = std::fs::read_dir(&args.path).expect("could not read file");
-    let content = std::fs::read_to_string(&args.path).map_err(|_| return Errors::FileNotFound)?;
+    //let content = std::fs::read_to_string(&args.path).map_err(|_| return Errors::FileNotFound)?;
+    let mut f = File::options().append(true).open(args.path).map_err(|_| Errors::FileNotFound)?;
+    let mut content = String::from("");
+    f.read_to_string(&mut content).map_err(|_| Errors::FileIsEmpty)?;
 
     if content.contains(&args.pattern) {
         return Err(Errors::FileIsEmpty);
@@ -57,8 +60,7 @@ fn read_file(args:Args) -> Result<(), Errors> {
 fn open_file(path: PathBuf) -> Result<(), Errors> {
     let path = path.to_str().unwrap();
 
-    //let f = File::options().append(true).open(args.path).map_err(|_| Errors::FileNotFound)?;
-    let mut _cmd = Command::new("open_command").current_dir("/home/manan").arg(path).spawn().unwrap();
+    Command::new("open_command").current_dir("/home/manan").arg(path).spawn().unwrap();
    // .map_err(|_| Errors::FileNotFound)?;
 
     return Ok(());
