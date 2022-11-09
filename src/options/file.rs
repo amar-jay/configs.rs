@@ -4,6 +4,16 @@ use crate::Args;
 pub struct FileOptions {}
 
 impl FileOptions {
+    /// This echos the pattern entered
+    pub fn echo(path: PathBuf) -> Result<(), Errors> {
+        if path.to_str().is_none() {
+            return Err(Errors::ArgumentError);
+        }
+        println!("{}", path.to_str().unwrap());
+        Ok(())
+    }
+
+    /// read a given file from path
     pub fn read_file(args:Args) -> Result<(), Errors> {
 
         //let folder = std::fs::read_dir(&args.path).expect("could not read file");

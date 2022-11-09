@@ -10,7 +10,7 @@ pub struct Args {
     /// Self explanatory
     command: String,
     /// A regex pattern
-    #[arg(long, short='r', required=false)]
+    #[arg(short='n', required=false)]
     pattern: String,
 
     /// path of file - regex not supported yet
@@ -35,6 +35,7 @@ fn run() ->  Result<(), Errors> {
     let cmd = args.command.as_str();
 
     match cmd {
+        "echo" => FileOptions::echo(args.path),
         "open" => FileOptions::open_file(args.path), 
         "read" => FileOptions::read_file(args),
         "run"  => FileOptions::exec_file(args.path),
