@@ -2,10 +2,11 @@ pub mod file;
 use std::path::PathBuf;
 use crate::Args;
 
+type BoxedError = Box<dyn std::error::Error>;
 pub enum Errors {
-    ArgumentError,
+    ArgumentError(BoxedError),
     CommandNotFound,
-    FileNotFound,
+    FileNotFound(BoxedError),
     FileIsEmpty,
 }
 
