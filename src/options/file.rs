@@ -59,6 +59,7 @@ impl FileOptions {
             .arg(path)
             .spawn()
             .map_err(|err| Errors::FileNotFound(Box::new(err)))?;
+
         Ok(())
     }
 }
