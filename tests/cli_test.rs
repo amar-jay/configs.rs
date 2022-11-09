@@ -6,7 +6,7 @@ use std::fs;
 // --------------------------------------------------
 type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
 
-fn run(args: &[&str], expected_file: &str) ->  TestResult<()> {
+fn run(args: &[&str], expected_file: &str) -> TestResult<()> {
     let expected = fs::read_to_string(expected_file)?;
     Command::cargo_bin("configs")?
         .args(args)
@@ -15,7 +15,6 @@ fn run(args: &[&str], expected_file: &str) ->  TestResult<()> {
         .stdout(expected);
     Ok(())
 }
-
 
 // --------------------------------------------------
 #[test]
@@ -30,6 +29,8 @@ fn test_false_cmd() -> TestResult<()> {
 // --------------------------------------------------
 #[test]
 fn test_echo() -> TestResult<()> {
-    run(&["echo", "-p", "Hello world", "-n", "xx"], "tests/expected/hello.txt")
+    run(
+        &["echo", "-p", "Hello world", "-n", "xx"],
+        "tests/expected/hello.txt",
+    )
 }
-

@@ -10,7 +10,7 @@ pub struct Args {
     /// Self explanatory
     command: String,
     /// A regex pattern
-    #[arg(short='n', required=false)]
+    #[arg(short = 'n', required = false)]
     pattern: String,
 
     /// path of file - regex not supported yet
@@ -18,26 +18,26 @@ pub struct Args {
     path: PathBuf,
 }
 
-fn run() ->  Result<(), Errors> {
+fn run() -> Result<(), Errors> {
     let args = Args::parse();
     let cmd = args.command.as_str();
 
     match cmd {
         "echo" => FileOptions::echo(args.path),
-        "open" => FileOptions::open_file(args.path), 
+        "open" => FileOptions::open_file(args.path),
         "read" => FileOptions::read_file(args),
-        "run"  => FileOptions::exec_file(args.path),
-        _      => Err(Errors::CommandNotFound)
+        "run" => FileOptions::exec_file(args.path),
+        _ => Err(Errors::CommandNotFound),
     }
 }
 
 fn print_error(stat: &str, err: Option<Box<dyn std::error::Error>>) {
     if let Some(err) = err {
-        eprintln!("{}\n{}",stat, err );
+        eprintln!("{}\n{}", stat, err);
         std::process::exit(1);
     }
 
-    eprintln!("Warning:\t{}",stat);
+    eprintln!("Warning:\t{}", stat);
     std::process::exit(0)
 }
 fn main() {
@@ -47,6 +47,6 @@ fn main() {
         Err(Errors::CommandNotFound) => print_error("Command not Found", None),
         Err(Errors::ArgumentError(err)) => print_error("wrong input", Some(err)),
         Err(Errors::FileIsEmpty) => print_error("File not found", None),
-//        Err(Errors::PathError) => eprintln!("Path input error!!"),
+        //        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
 }
