@@ -27,7 +27,7 @@ fn run() ->  Result<(), Errors> {
         "open" => FileOptions::open_file(args.path), 
         "read" => FileOptions::read_file(args),
         "run"  => FileOptions::exec_file(args.path),
-        err  => Err(Errors::CommandNotFound)
+        _      => Err(Errors::CommandNotFound)
     }
 }
 
@@ -43,9 +43,9 @@ fn print_error(stat: &str, err: Option<Box<dyn std::error::Error>>) {
 fn main() {
     match run() {
         Ok(r) => r,
-        Err(Errors::FileNotFound(err)) => print_error("File not found", Some(Box::new(err))),
+        Err(Errors::FileNotFound(err)) => print_error("File not found", Some(err)),
         Err(Errors::CommandNotFound) => print_error("Command not Found", None),
-        Err(Errors::ArgumentError(err)) => print_error("wrong input", Some(Box::new(err))),
+        Err(Errors::ArgumentError(err)) => print_error("wrong input", Some(err)),
         Err(Errors::FileIsEmpty) => print_error("File not found", None),
 //        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
