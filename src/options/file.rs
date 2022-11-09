@@ -1,6 +1,7 @@
 use std::{process::Command, fs::File, path::PathBuf, io::Read};
 use crate::Errors;
 use crate::Args;
+
 pub struct FileOptions {}
 
 impl FileOptions {
@@ -35,20 +36,19 @@ impl FileOptions {
         Ok(())
     }
 
+    /// execute a given file from path
     pub fn exec_file(path: PathBuf) -> Result<(), Errors> {
         let path = path.to_str().unwrap();
-
         Command::new(path).spawn().map_err(|_| Errors::ArgumentError)?;
-
         return Ok(());
     }
 
+    /// open a given file from path
     pub fn open_file(path: PathBuf) -> Result<(), Errors> {
         let path = path.to_str().unwrap();
 
-        Command::new("open_command").current_dir("/home/manan").arg(path).spawn().unwrap();
-       // .map_err(|_| Errors::FileNotFound)?;
-
+        // TODO: resolve Errors
+        Command::new("open_command").current_dir("/home/manan").arg(path).spawn().map_err(|_| Errors::FileNotFound)?;
         return Ok(());
     }
 

@@ -18,18 +18,6 @@ pub struct Args {
     path: PathBuf,
 }
 
-impl Args {
-
-    #![allow(unused)]
-    fn new(command: String, pattern: String, path: PathBuf) -> Args {
-        Args {
-            command,
-            pattern,
-            path
-        }
-    }
-}
-
 fn run() ->  Result<(), Errors> {
     let args = Args::parse();
     let cmd = args.command.as_str();
@@ -43,13 +31,17 @@ fn run() ->  Result<(), Errors> {
     }
 }
 
+fn print_error(stat: &str) {
+    eprintln!("{}",stat);
+    std::process::exit(1);
+}
 fn main() {
     match run() {
         Ok(r) => r,
-        Err(Errors::FileNotFound) => eprintln!("File not found"),
-        Err(Errors::CommandNotFound) => eprintln!("Command not Found"),
-        Err(Errors::ArgumentError) => eprintln!("wrong input"),
-        Err(Errors::FileIsEmpty) => eprintln!("File not found"),
+        Err(Errors::FileNotFound) => print_error("File not found"),
+        Err(Errors::CommandNotFound) => print_error("Command not Found"),
+        Err(Errors::ArgumentError) => print_error("wrong input"),
+        Err(Errors::FileIsEmpty) => print_error("File not found"),
 //        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
 }
