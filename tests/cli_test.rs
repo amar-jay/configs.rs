@@ -28,9 +28,17 @@ fn test_false_cmd() -> TestResult<()> {
 
 // --------------------------------------------------
 #[test]
+fn test_cat() -> TestResult<()> {
+    run(
+        &["read", "-p", "tests/expected/hello.txt", "-r", "Hello"],
+        "tests/expected/hello.txt",
+    )
+}
+// --------------------------------------------------
+#[test]
 fn test_echo() -> TestResult<()> {
     run(
-        &["echo", "-p", "Hello world", "-n", "xx"],
+        &["echo", "-p", "Hello world", "-r", "xx"],
         "tests/expected/hello.txt",
     )
 }

@@ -1,39 +1,68 @@
-use std::{fs::File, io::Read, path::PathBuf, process::Command};
+use std::{fs::File, io::{BufReader, BufRead}, path::PathBuf, process::Command};
 
 use crate::Args;
+use colored::Colorize;
 use crate::Errors;
 
 pub struct FileOptions {}
 
 impl FileOptions {
     /// This echos the pattern entered
+    fn open(name: &str) -> Result<Box<dyn BufRead>, Errors> {
+        let f = File::open(name)
+            .map_err(|err| Errors::FileNotFound(Box::new(err)))?;
+
+        let content = BufReader::new(f);
+        Ok(Box::new(content))
+    }
     pub fn echo(path: PathBuf) -> Result<(), Errors> {
         if path.to_str().is_none() {
             return Err(Errors::ArgumentError(Box::new(std::fmt::Error)));
         }
-        println!("{}", path.to_str().unwrap());
+        println!("{}", path.to_str().unwrap().blue());
         Ok(())
     }
 
+    /// Similar to cat on linux
+    pub fn cat_file(args: Args) -> Result<(), Errors> {
+        let content = Self::open(args.path.to_str().unwrap())?;
+
+        for (line_no, line) in content.lines().enumerate() {
+            let line = line.map_err(|err| Errors::ParsingError(Box::new(err)))?;
+
+                if args.number {
+                println!("{}:\t{}", line_no.to_string().blue(), line);
+                } else {
+                    println!("\t{}", line);
+                }
+        }
+        Ok(())
+    }
     /// read a given file from path
     pub fn read_file(args: Args) -> Result<(), Errors> {
         //let folder = std::fs::read_dir(&args.path).expect("could not read file");
         //let content = std::fs::read_to_string(&args.path).map_err(|_| return Errors::FileNotFound)?;
-        let mut f = File::options()
-            .append(true)
-            .open(args.path)
-            .map_err(|err| Errors::FileNotFound(Box::new(err)))?;
-        let mut content = String::from("");
-        f.read_to_string(&mut content)
-            .map_err(|err| Errors::FileNotFound(Box::new(err)))?;
+        // k
+       // let mut content = String::from("");
+       // f.read_to_string(&mut content)
+       //     .map_err(|err| Errors::ParsingError(Box::new(err)))?;
+        let content = Self::open(args.path.to_str().unwrap())?;
 
-        if content.contains(&args.pattern) {
-            return Err(Errors::FileIsEmpty);
-        }
-
-        for line in content.lines() {
+        print!("\n");
+        for (line_no, line) in content.lines().enumerate() {
+            let line = line.map_err(|err| Errors::ParsingError(Box::new(err)))?;
             if line.contains(&args.pattern) {
-                println!("{}", line);
+                let line:Vec<_> = line.split_whitespace().into_iter().map(|e| {
+                    if e == args.pattern {
+                        return e.to_string().green().to_string()
+                    }
+                    e.to_string()
+                }).collect();
+                if args.number {
+                println!("{}:\t{}", line_no.to_string().blue(), line.join(" "));
+                } else {
+                    println!("\t{}", line.join(" "));
+                }
             }
         }
 

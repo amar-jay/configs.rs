@@ -1,6 +1,7 @@
 mod options;
-use crate::options::{file::FileOptions, Errors};
+use crate::options::{file::FileOptions, Errors, DegreeOfError};
 use clap::Parser;
+use colored::Colorize;
 use std::path::PathBuf;
 
 /// A simple program to organize my CLI commands.
@@ -9,12 +10,16 @@ use std::path::PathBuf;
 pub struct Args {
     /// Self explanatory
     command: String,
+
     /// A regex pattern
-    #[arg(short = 'n', required = false)]
+    #[arg(short = 'r', required = false)]
     pattern: String,
 
+    #[arg(short, required = false)]
+    number: bool,
+
     /// path of file - regex not supported yet
-    #[arg(long, short='p', aliases=["where"], required=true)]
+    #[arg(long, short='p', aliases=["where"], required = true)]
     path: PathBuf,
 }
 
@@ -25,28 +30,37 @@ fn run() -> Result<(), Errors> {
     match cmd {
         "echo" => FileOptions::echo(args.path),
         "open" => FileOptions::open_file(args.path),
-        "read" => FileOptions::read_file(args),
+        "cat" => FileOptions::cat_file(args),
+        "find" => FileOptions::read_file(args),
         "run" => FileOptions::exec_file(args.path),
         _ => Err(Errors::CommandNotFound),
     }
 }
 
-fn print_error(stat: &str, err: Option<Box<dyn std::error::Error>>) {
+fn print_error(stat: &str, err: Option<Box<dyn std::error::Error>>, deg:DegreeOfError) {
     if let Some(err) = err {
-        eprintln!("{}\n{}", stat, err);
+        let err = match deg {
+            DegreeOfError::Warn => format!("{}", err).yellow(),
+            DegreeOfError::Danger => format!("{}", err).red(),
+            DegreeOfError::Info => format!("{}", err).blue(),
+        };
+     
+        eprintln!("{}:\t{}\n", stat.bold().green(), err);
         std::process::exit(1);
-    }
+    };
 
-    eprintln!("Warning:\t{}", stat);
+    eprintln!("{}:\t{}\n", "Unknown Warning".bold().green(), stat.red());
     std::process::exit(0)
 }
 fn main() {
     match run() {
         Ok(r) => r,
-        Err(Errors::FileNotFound(err)) => print_error("File not found", Some(err)),
-        Err(Errors::CommandNotFound) => print_error("Command not Found", None),
-        Err(Errors::ArgumentError(err)) => print_error("wrong input", Some(err)),
-        Err(Errors::FileIsEmpty) => print_error("File not found", None),
+        Err(Errors::FileNotFound(err)) => print_error("File not found", Some(err), DegreeOfError::Warn),
+        Err(Errors::CommandNotFound) => print_error("Command not Found", None, DegreeOfError::Danger),
+        Err(Errors::ArgumentError(err)) => print_error("wrong input", Some(err), DegreeOfError::Danger),
+       // Err(Errors::FileIsEmpty) => print_error("File not found", None, DegreeOfError::Info),
+        Err(Errors::ParsingError(err)) => print_error("Parsing Error", Some(err), DegreeOfError::Info),
+
         //        Err(Errors::PathError) => eprintln!("Path input error!!"),
     }
 }
