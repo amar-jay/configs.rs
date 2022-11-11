@@ -1,8 +1,8 @@
 [package]
 name = "configs"
 description = "An rust alternative to frequently used bash commands"
-version = "0.1.0"
-repository = "https://github.com/configs.rs"
+version = "0.1.1"
+repository = "https://github.com/amar-jay/configs.rs"
 authors = ["amar-jay <me@themanan.me>"]
 edition = "2021"
 license = "MIT"
